@@ -15,7 +15,7 @@ import env from '../config/env.js';
  * 1. Receive video (handled by multer)
  * 2. Hash the video
  * 3. Upload to IPFS
- * 4. Store in blockchain (stub for now)
+ * 4. Store in blockchain (both Scroll and Arbitrum)
  * 5. Save record locally
  * 6. Clean up temp file (optional)
  */
@@ -56,12 +56,17 @@ export async function uploadEvidence(req, res) {
     const cid = await uploadToIPFS(filePath);
     console.log(`✅ CID: ${cid}`);
 
-    // Step 3: Store on blockchain (stub for now)
+    // Generate unique record ID
+    const recordId = `${plate}-${timestamp}`;
+    console.log(`🆔 Record ID: ${recordId}`);
+
+    // Step 3: Store on blockchain (both Scroll and Arbitrum)
     console.log('⛓️  Storing on blockchain...');
     const { scrollTx, arbitrumTx } = await storeEvidenceOnChain(
+      recordId,
       plate,
-      timestamp,
-      cid
+      cid,
+      hash
     );
     console.log(`✅ Scroll TX: ${scrollTx}`);
     console.log(`✅ Arbitrum TX: ${arbitrumTx}`);
@@ -75,6 +80,7 @@ export async function uploadEvidence(req, res) {
       cid,
       scrollTx,
       arbitrumTx,
+      recordId,
       fileName: req.file.originalname,
       fileSize: req.file.size,
     });
@@ -85,15 +91,18 @@ export async function uploadEvidence(req, res) {
       console.log('🗑️  Temp file deleted');
     }
 
+    console.log('✨ Evidence upload complete!\n');
+
     // Success response
     return res.status(200).json({
       success: true,
+      recordId,
       hash,
       cid,
       timestamp,
       scrollTx,
       arbitrumTx,
-      recordId: record.id,
+      recordId: record.id, // Local DB record ID
     });
 
   } catch (error) {
