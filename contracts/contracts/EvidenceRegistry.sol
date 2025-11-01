@@ -18,6 +18,15 @@ contract EvidenceRegistry {
     mapping(string => Evidence) public records;
     string[] private recordIds;
 
+    /*
+        DATOS: PLACA     ->      MOMENTO EN EL TIEMPO    ->      VIDEO
+               STRING    ->      TIMESTAMP               ->      HASH 
+               STRING    ->      UINT256/BYTES32         ->      STRING/BYTES32    
+               mapping(string => mapping(uint256 => bytes32))             
+    */
+
+
+
     event EvidenceStored(
         string indexed recordId,
         string plate,
