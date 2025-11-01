@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { hashFile } from '../services/hash.service.js';
 import { uploadToIPFS } from '../services/ipfs.service.js';
-import { saveRecord } from '../services/storage.service.js';
+import { saveRecord, findRecordByRecordId } from '../services/storage.service.js';
 import { storeEvidenceOnChain } from '../services/blockchain.service.js';
 import env from '../config/env.js';
 
@@ -116,6 +116,58 @@ export async function uploadEvidence(req, res) {
     return res.status(500).json({
       success: false,
       error: error.message || 'Evidence upload failed',
+    });
+  }
+}
+
+/**
+ * GET /api/evidence/:recordId
+ * Get evidence by recordId from local database
+ */
+export async function getEvidenceByRecordId(req, res) {
+  try {
+    const { recordId } = req.params;
+
+    if (!recordId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Record ID is required',
+      });
+    }
+
+    const record = findRecordByRecordId(recordId);
+
+    if (!record) {
+      return res.status(404).json({
+        success: false,
+        error: 'Record not found',
+      });
+    }
+
+    // Return in format similar to blockchain response
+    return res.status(200).json({
+      success: true,
+      recordId: record.recordId,
+      plate: record.plate,
+      licencePlate: record.plate, // Alias for compatibility
+      ipfsHash: record.cid,
+      ipfsCid: record.cid,
+      fileHash: record.hash,
+      hash: record.hash,
+      timestamp: record.timestamp,
+      scrollTx: record.scrollTx,
+      arbitrumTx: record.arbitrumTx,
+      fileName: record.fileName,
+      fileSize: record.fileSize,
+      createdAt: record.createdAt,
+      source: 'local' // Indicate this came from local DB, not blockchain
+    });
+
+  } catch (error) {
+    console.error('❌ Get evidence error:', error);
+    return res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to get evidence',
     });
   }
 }

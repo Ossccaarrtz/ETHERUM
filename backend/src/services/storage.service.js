@@ -151,6 +151,21 @@ export function getAllRecords() {
 }
 
 /**
+ * Find record by recordId (the blockchain recordId, not the local id)
+ * @param {string} recordId - Record ID in format PLATE-TIMESTAMP
+ * @returns {Object|null} - Found record or null
+ */
+export function findRecordByRecordId(recordId) {
+  try {
+    const records = readRecords();
+    return records.find(r => r.recordId === recordId) || null;
+  } catch (error) {
+    console.error('Error finding record by recordId:', error);
+    return null;
+  }
+}
+
+/**
  * Delete record by ID
  * @param {string} id - Record ID
  * @returns {boolean} - Success status

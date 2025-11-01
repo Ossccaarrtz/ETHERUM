@@ -1,6 +1,6 @@
 import express from 'express';
 import upload from '../middleware/upload.middleware.js';
-import { uploadEvidence } from '../controllers/evidence.controller.js';
+import { uploadEvidence, getEvidenceByRecordId } from '../controllers/evidence.controller.js';
 
 const router = express.Router();
 
@@ -13,5 +13,17 @@ const router = express.Router();
  * - plate: string (vehicle plate number)
  */
 router.post('/upload', upload.single('video'), uploadEvidence);
+
+/**
+ * GET /api/evidence/verify/:recordId
+ * Get evidence by recordId (for verification)
+ */
+router.get('/verify/:recordId', getEvidenceByRecordId);
+
+/**
+ * GET /api/evidence/:recordId
+ * Get evidence by recordId (fallback route - must be last)
+ */
+router.get('/:recordId', getEvidenceByRecordId);
 
 export default router;
