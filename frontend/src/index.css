@@ -1,0 +1,165 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
+:root {
+  --ct-dark: #0b1a33;
+  --ct-deep: #0f2f57;
+  --ct-blue: #0072ce;
+  --ct-red: #be1e2d;
+  --ct-gray: #dde4ef;
+  --ct-bg: #f7f9fc;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--ct-bg);
+  min-height: 100vh;
+}
+
+@layer components {
+  .btn-primary {
+    @apply relative overflow-hidden bg-gradient-to-r from-slate-900 to-slate-700 text-white font-medium py-3 px-8 rounded-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100;
+  }
+
+  .btn-secondary {
+    @apply bg-white text-slate-700 font-medium py-3 px-8 rounded-lg border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all duration-300 hover:shadow-md;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl border border-slate-200 shadow-lg backdrop-blur-sm;
+  }
+
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-md rounded-2xl border border-white/20 shadow-xl;
+  }
+
+  .input {
+    @apply w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Animations */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes pulse-slow {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@layer utilities {
+  .bg-ct-dark {
+    background: var(--ct-dark);
+  }
+  .bg-ct-deep {
+    background: var(--ct-deep);
+  }
+  .bg-ct-blue {
+    background: var(--ct-blue);
+  }
+  .text-ct-gray {
+    color: var(--ct-gray);
+  }
+  .border-ct-border {
+    border-color: var(--ct-gray);
+  }
+}
+
+/* ===== Timeline (vertical dots) ===== */
+.timeline {
+  position: relative;
+  padding-left: 1.5rem;
+}
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 0.55rem;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--ct-gray, #e6eaf0);
+}
+.timeline-item {
+  position: relative;
+  margin-bottom: 1rem;
+  padding-left: 0.5rem;
+}
+.timeline-dot {
+  position: absolute;
+  left: -0.125rem;
+  top: 0.25rem;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 9999px;
+  background: #0072ce; /* ct-blue */
+  box-shadow: 0 0 0 3px #e7f1fb;
+}
+.timeline-time {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+.timeline-card {
+  background: #fff;
+  border: 1px solid #e6eaf0;
+  border-radius: 0.75rem;
+  padding: 0.75rem 0.875rem;
+}

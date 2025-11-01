@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "nft.storage": "^7.2.0"
+  },
+  "devDependencies": {
+    "hardhat": "^2.26.5"
+  }
+}

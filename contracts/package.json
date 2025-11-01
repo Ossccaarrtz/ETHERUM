@@ -1,0 +1,13 @@
+{
+  "name": "fleet-blockchain",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "npx hardhat test"
+  },
+  "devDependencies": {
+    "hardhat": "^2.19.3",
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "ethers": "^5.7.2",
+    "dotenv": "^16.0.3"
+  }
+}
