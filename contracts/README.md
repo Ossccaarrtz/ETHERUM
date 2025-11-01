@@ -87,32 +87,40 @@ npx hardhat run scripts/deploy.js --network arbitrumSepolia
 ## 📝 Funciones del Contrato
 
 ### `storeEvidence(recordId, plate, ipfsCid, hash)`
+
 Almacena una nueva evidencia en la blockchain.
 
 **Parámetros:**
-- `recordId`: ID único del registro
+
+- `recordId`: ID único del registro.
 - `plate`: Número de placa del vehículo
 - `ipfsCid`: Content ID de IPFS donde está almacenado el archivo
 - `hash`: Hash del archivo para verificación
 
 ### `updateEvidence(recordId, newIpfsCid, newHash)`
+
 Actualiza una evidencia existente (solo el creador original).
 
 ### `getEvidence(recordId)`
+
 Obtiene la información completa de una evidencia.
 
 ### `recordExists(recordId)`
+
 Verifica si un registro existe.
 
 ### `getTotalRecords()`
+
 Obtiene el número total de registros.
 
 ### `getRecordIdByIndex(index)`
+
 Obtiene un record ID por su índice.
 
 ## 🧪 Tests
 
 Los tests cubren:
+
 - ✅ Deployment del contrato
 - ✅ Almacenamiento de evidencias
 - ✅ Validaciones de entrada
@@ -146,10 +154,12 @@ contracts/
 ## 🌐 Redes Soportadas
 
 ### Mainnet
+
 - Scroll (Chain ID: 534352)
 - Arbitrum One (Chain ID: 42161)
 
 ### Testnet
+
 - Scroll Sepolia (Chain ID: 534351)
 - Arbitrum Sepolia (Chain ID: 421614)
 
