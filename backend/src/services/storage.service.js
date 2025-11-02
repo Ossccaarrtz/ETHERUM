@@ -135,7 +135,12 @@ export function findRecord(plate, timestamp) {
 export function getRecordsByPlate(plate) {
   try {
     const records = readRecords();
-    return records.filter(r => r.plate === plate);
+    // Case-insensitive search and also try with normalized plate (uppercase, trimmed)
+    const normalizedPlate = plate.trim().toUpperCase();
+    return records.filter(r => {
+      const recordPlate = r.plate ? r.plate.trim().toUpperCase() : '';
+      return recordPlate === normalizedPlate || r.plate === plate;
+    });
   } catch (error) {
     console.error('Error getting records by plate:', error);
     return [];

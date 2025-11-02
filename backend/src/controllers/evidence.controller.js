@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { hashFile } from '../services/hash.service.js';
 import { uploadToIPFS } from '../services/ipfs.service.js';
-import { saveRecord, findRecordByRecordId, getRecordsByPlate } from '../services/storage.service.js';
+import { saveRecord, findRecordByRecordId, getRecordsByPlate, getAllRecords } from '../services/storage.service.js';
 import { storeEvidenceOnChain } from '../services/blockchain.service.js';
 import env from '../config/env.js';
 
@@ -45,6 +45,16 @@ export async function uploadEvidence(req, res) {
 
     console.log(`\n🚀 Starting evidence upload for plate: ${plate}`);
     console.log(`📁 File: ${req.file.originalname}`);
+    console.log(`📂 File path: ${filePath}`);
+
+    // Verify file exists
+    if (!fs.existsSync(filePath)) {
+      console.error(`❌ File not found: ${filePath}`);
+      return res.status(400).json({
+        success: false,
+        error: `File not found: ${filePath}. The uploaded file may not have been saved correctly.`,
+      });
+    }
 
     // Step 1: Hash the video
     console.log('🔐 Hashing video...');
@@ -144,6 +154,18 @@ export async function getEvidenceByRecordId(req, res) {
       });
     }
 
+    // Helper function to generate blockchain explorer URLs
+    const getExplorerUrl = (txHash, network) => {
+      if (txHash && txHash.startsWith('0x') && txHash.length === 66 && !txHash.includes('error') && !txHash.includes('mock') && !txHash.includes('notconfigured')) {
+        if (network === 'scroll') {
+          return `https://sepolia.scrollscan.com/tx/${txHash}`;
+        } else if (network === 'arbitrum') {
+          return `https://sepolia.arbiscan.io/tx/${txHash}`;
+        }
+      }
+      return null;
+    };
+
     // Return in format similar to blockchain response
     return res.status(200).json({
       success: true,
@@ -157,6 +179,8 @@ export async function getEvidenceByRecordId(req, res) {
       timestamp: record.timestamp,
       scrollTx: record.scrollTx,
       arbitrumTx: record.arbitrumTx,
+      scrollExplorerUrl: getExplorerUrl(record.scrollTx, 'scroll'),
+      arbitrumExplorerUrl: getExplorerUrl(record.arbitrumTx, 'arbitrum'),
       fileName: record.fileName,
       fileSize: record.fileSize,
       createdAt: record.createdAt,
@@ -189,13 +213,28 @@ export async function getEvidenceByPlate(req, res) {
 
     const records = getRecordsByPlate(plate);
 
+    // Always return 200, even if no records found (for better frontend handling)
     if (records.length === 0) {
-      return res.status(404).json({
-        success: false,
-        error: 'No records found for this plate',
+      return res.status(200).json({
+        success: true,
+        plate,
+        count: 0,
         records: [],
+        message: 'No records found for this plate',
       });
     }
+
+    // Helper function to generate blockchain explorer URLs
+    const getExplorerUrl = (txHash, network) => {
+      if (txHash && txHash.startsWith('0x') && txHash.length === 66 && !txHash.includes('error') && !txHash.includes('mock') && !txHash.includes('notconfigured')) {
+        if (network === 'scroll') {
+          return `https://sepolia.scrollscan.com/tx/${txHash}`;
+        } else if (network === 'arbitrum') {
+          return `https://sepolia.arbiscan.io/tx/${txHash}`;
+        }
+      }
+      return null;
+    };
 
     // Return records in format similar to blockchain response
     const formattedRecords = records.map(record => ({
@@ -209,6 +248,8 @@ export async function getEvidenceByPlate(req, res) {
       timestamp: record.timestamp,
       scrollTx: record.scrollTx,
       arbitrumTx: record.arbitrumTx,
+      scrollExplorerUrl: getExplorerUrl(record.scrollTx, 'scroll'),
+      arbitrumExplorerUrl: getExplorerUrl(record.arbitrumTx, 'arbitrum'),
       fileName: record.fileName,
       fileSize: record.fileSize,
       createdAt: record.createdAt,
@@ -227,6 +268,69 @@ export async function getEvidenceByPlate(req, res) {
     return res.status(500).json({
       success: false,
       error: error.message || 'Failed to get evidence by plate',
+    });
+  }
+}
+
+/**
+ * GET /api/evidence/all
+ * Get all evidence records
+ */
+export async function getAllEvidence(req, res) {
+  try {
+    const records = getAllRecords();
+
+    if (records.length === 0) {
+      return res.status(200).json({
+        success: true,
+        count: 0,
+        records: [],
+      });
+    }
+
+    // Helper function to generate blockchain explorer URLs
+    const getExplorerUrl = (txHash, network) => {
+      if (txHash && txHash.startsWith('0x') && txHash.length === 66 && !txHash.includes('error') && !txHash.includes('mock') && !txHash.includes('notconfigured')) {
+        if (network === 'scroll') {
+          return `https://sepolia.scrollscan.com/tx/${txHash}`;
+        } else if (network === 'arbitrum') {
+          return `https://sepolia.arbiscan.io/tx/${txHash}`;
+        }
+      }
+      return null;
+    };
+
+    // Return records in format similar to blockchain response
+    const formattedRecords = records.map(record => ({
+      recordId: record.recordId,
+      plate: record.plate,
+      licencePlate: record.plate,
+      ipfsHash: record.cid,
+      ipfsCid: record.cid,
+      fileHash: record.hash,
+      hash: record.hash,
+      timestamp: record.timestamp,
+      scrollTx: record.scrollTx,
+      arbitrumTx: record.arbitrumTx,
+      scrollExplorerUrl: getExplorerUrl(record.scrollTx, 'scroll'),
+      arbitrumExplorerUrl: getExplorerUrl(record.arbitrumTx, 'arbitrum'),
+      fileName: record.fileName,
+      fileSize: record.fileSize,
+      createdAt: record.createdAt,
+      source: 'local'
+    }));
+
+    return res.status(200).json({
+      success: true,
+      count: formattedRecords.length,
+      records: formattedRecords,
+    });
+
+  } catch (error) {
+    console.error('❌ Get all evidence error:', error);
+    return res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to get all evidence',
     });
   }
 }

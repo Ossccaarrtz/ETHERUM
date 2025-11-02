@@ -279,9 +279,32 @@ export default function ResultDisplay({ result }) {
                   </svg>
                 </button>
               </div>
-              <code className="text-xs font-mono text-slate-600 break-all">
+              <code className="text-xs font-mono text-slate-600 break-all mb-2">
                 {result.arbitrumTx}
               </code>
+              {result.arbitrumTx && result.arbitrumTx.startsWith('0x') && result.arbitrumTx.length === 66 && !result.arbitrumTx.includes('mock') && !result.arbitrumTx.includes('error') && !result.arbitrumTx.includes('notconfigured') && (
+                <a
+                  href={`https://sepolia.arbiscan.io/tx/${result.arbitrumTx}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-xs font-medium text-orange-600 hover:text-orange-700 transition-colors mt-2"
+                >
+                  <span>View on Arbiscan</span>
+                  <svg
+                    className="w-3 h-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                    />
+                  </svg>
+                </a>
+              )}
             </div>
 
             {/* Scroll */}
@@ -314,9 +337,32 @@ export default function ResultDisplay({ result }) {
                   </svg>
                 </button>
               </div>
-              <code className="text-xs font-mono text-slate-600 break-all">
+              <code className="text-xs font-mono text-slate-600 break-all mb-2">
                 {result.scrollTx}
               </code>
+              {result.scrollTx && result.scrollTx.startsWith('0x') && result.scrollTx.length === 66 && !result.scrollTx.includes('mock') && !result.scrollTx.includes('error') && !result.scrollTx.includes('notconfigured') && (
+                <a
+                  href={`https://sepolia.scrollscan.com/tx/${result.scrollTx}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700 transition-colors mt-2"
+                >
+                  <span>View on Scrollscan</span>
+                  <svg
+                    className="w-3 h-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                    />
+                  </svg>
+                </a>
+              )}
             </div>
           </div>
         </div>

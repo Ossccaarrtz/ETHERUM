@@ -26,6 +26,12 @@ export async function uploadToIPFS(filePath) {
 
     console.log(`\n📤 Starting IPFS upload via Pinata...`);
     console.log(`📁 File: ${path.basename(filePath)}`);
+    console.log(`📂 Full path: ${filePath}`);
+    
+    // Verify file exists
+    if (!fs.existsSync(filePath)) {
+      throw new Error(`File not found: ${filePath}`);
+    }
     
     // Get file info
     const fileName = path.basename(filePath);

@@ -1,6 +1,6 @@
 import express from 'express';
 import upload from '../middleware/upload.middleware.js';
-import { uploadEvidence, getEvidenceByRecordId, getEvidenceByPlate } from '../controllers/evidence.controller.js';
+import { uploadEvidence, getEvidenceByRecordId, getEvidenceByPlate, getAllEvidence } from '../controllers/evidence.controller.js';
 
 const router = express.Router();
 
@@ -13,6 +13,12 @@ const router = express.Router();
  * - plate: string (vehicle plate number)
  */
 router.post('/upload', upload.single('video'), uploadEvidence);
+
+/**
+ * GET /api/evidence/all
+ * Get all evidence records
+ */
+router.get('/all', getAllEvidence);
 
 /**
  * GET /api/evidence/verify/:recordId

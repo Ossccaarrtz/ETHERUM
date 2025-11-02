@@ -49,20 +49,35 @@ export function useVerifyEvidence() {
           if (response.data.success) {
             // Convertir formato del backend al formato esperado
             const localRecord = response.data;
-            const hasRealTx = localRecord.scrollTx && !localRecord.scrollTx.includes('mock') && !localRecord.scrollTx.includes('error');
+            const hasRealArbitrumTx = localRecord.arbitrumTx && !localRecord.arbitrumTx.includes('mock') && !localRecord.arbitrumTx.includes('error') && !localRecord.arbitrumTx.includes('notconfigured');
+            const hasRealScrollTx = localRecord.scrollTx && !localRecord.scrollTx.includes('mock') && !localRecord.scrollTx.includes('error') && !localRecord.scrollTx.includes('notconfigured');
             
+            // Helper to generate explorer URL
+            const getExplorerUrl = (txHash, network) => {
+              if (txHash && txHash.startsWith('0x') && txHash.length === 66 && !txHash.includes('error') && !txHash.includes('mock') && !txHash.includes('notconfigured')) {
+                if (network === 'scroll') {
+                  return `https://sepolia.scrollscan.com/tx/${txHash}`;
+                } else if (network === 'arbitrum') {
+                  return `https://sepolia.arbiscan.io/tx/${txHash}`;
+                }
+              }
+              return null;
+            };
+
             evidence = {
               recordId: localRecord.recordId,
               licencePlate: localRecord.plate || localRecord.licencePlate,
               ipfsHash: localRecord.ipfsHash || localRecord.ipfsCid || localRecord.cid,
               fileHash: localRecord.fileHash || localRecord.hash,
+              scrollTx: localRecord.scrollTx,
+              arbitrumTx: localRecord.arbitrumTx,
+              scrollExplorerUrl: getExplorerUrl(localRecord.scrollTx, 'scroll'),
+              arbitrumExplorerUrl: getExplorerUrl(localRecord.arbitrumTx, 'arbitrum'),
               uploader: 'local',
               timestamp: String(localRecord.timestamp),
               exists: true,
-              chain: hasRealTx ? 'Scroll Sepolia (Local DB)' : 'Local Database',
-              explorerUrl: hasRealTx 
-                ? `https://sepolia.scrollscan.com/tx/${localRecord.scrollTx}`
-                : '#',
+              chain: (hasRealScrollTx || hasRealArbitrumTx) ? 'Scroll & Arbitrum Sepolia' : 'Local Database',
+              explorerUrl: localRecord.scrollExplorerUrl || localRecord.arbitrumExplorerUrl || (hasRealScrollTx ? `https://sepolia.scrollscan.com/tx/${localRecord.scrollTx}` : hasRealArbitrumTx ? `https://sepolia.arbiscan.io/tx/${localRecord.arbitrumTx}` : '#'),
               source: 'local'
             };
             source = 'local';
@@ -102,6 +117,10 @@ export function useVerifyEvidence() {
         uploader: evidence.uploader || 'Unknown',
         chain: evidence.chain,
         explorerUrl: evidence.explorerUrl || '#',
+        scrollTx: evidence.scrollTx,
+        arbitrumTx: evidence.arbitrumTx,
+        scrollExplorerUrl: evidence.scrollExplorerUrl,
+        arbitrumExplorerUrl: evidence.arbitrumExplorerUrl,
         gateway,
         fileBlob: blob,
         source: source, // 'blockchain' o 'local'

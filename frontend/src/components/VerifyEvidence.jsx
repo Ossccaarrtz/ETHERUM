@@ -61,20 +61,29 @@ export default function VerifyEvidence() {
       
       try {
         toast.loading("Buscando historial por placa...", { id: "history-loading" });
-        const response = await axios.get(`/api/evidence/plate/${trimmedInput}`);
+        const response = await axios.get(`/api/evidence/plate/${encodeURIComponent(trimmedInput)}`);
         
-        if (response.data.success && response.data.records.length > 0) {
-          setPlateHistory({
-            plate: response.data.plate,
-            count: response.data.count,
-            records: response.data.records,
-          });
-          toast.success(`Se encontraron ${response.data.count} evidencia(s)`, { 
-            id: "history-loading",
-            duration: 3000 
-          });
+        if (response.data.success) {
+          if (response.data.records && response.data.records.length > 0) {
+            setPlateHistory({
+              plate: response.data.plate || trimmedInput,
+              count: response.data.count || response.data.records.length,
+              records: response.data.records,
+            });
+            toast.success(`Se encontraron ${response.data.count || response.data.records.length} evidencia(s)`, { 
+              id: "history-loading",
+              duration: 3000 
+            });
+          } else {
+            setPlateHistory(null);
+            toast.error(response.data.message || "No se encontraron evidencias para esta placa", { 
+              id: "history-loading",
+              duration: 3000 
+            });
+          }
         } else {
-          toast.error("No se encontraron evidencias para esta placa", { 
+          setPlateHistory(null);
+          toast.error(response.data.error || "No se encontraron evidencias para esta placa", { 
             id: "history-loading",
             duration: 3000 
           });
@@ -256,6 +265,46 @@ export default function VerifyEvidence() {
                             </span>
                           </div>
                         </div>
+                        
+                        {/* Blockchain Links */}
+                        {(record.scrollExplorerUrl || record.arbitrumExplorerUrl || record.scrollTx || record.arbitrumTx) && (
+                          <div className="flex items-center gap-2 mt-3 flex-wrap">
+                            {record.scrollExplorerUrl && (
+                              <a
+                                href={record.scrollExplorerUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-semibold hover:bg-blue-200"
+                                title="Ver en Scroll"
+                              >
+                                <ExternalLink className="w-3 h-3" />
+                                Scroll
+                              </a>
+                            )}
+                            {record.arbitrumExplorerUrl && (
+                              <a
+                                href={record.arbitrumExplorerUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-semibold hover:bg-orange-200"
+                                title="Ver en Arbitrum"
+                              >
+                                <ExternalLink className="w-3 h-3" />
+                                Arbitrum
+                              </a>
+                            )}
+                            <a
+                              href={`https://ipfs.io/ipfs/${record.ipfsCid || record.ipfsHash}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-semibold hover:bg-purple-200"
+                              title="Ver en IPFS"
+                            >
+                              <ExternalLink className="w-3 h-3" />
+                              IPFS
+                            </a>
+                          </div>
+                        )}
                       </div>
 
                       <button
@@ -426,19 +475,50 @@ export default function VerifyEvidence() {
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600 font-medium">Uploader:</span>
                     <span className="font-mono text-sm text-gray-900">
-                      {verificationResult.uploader.slice(0, 6)}...
-                      {verificationResult.uploader.slice(-4)}
+                      {verificationResult.uploader && verificationResult.uploader !== 'local' && verificationResult.uploader !== 'Unknown'
+                        ? `${verificationResult.uploader.slice(0, 6)}...${verificationResult.uploader.slice(-4)}`
+                        : 'Sistema Local'}
                     </span>
                   </div>
-                  <a
-                    href={verificationResult.explorerUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
-                  >
-                    <ExternalLink className="w-5 h-5" />
-                    Ver en Blockchain Explorer
-                  </a>
+                  
+                  {/* Blockchain Links */}
+                  {(verificationResult.scrollExplorerUrl || verificationResult.arbitrumExplorerUrl || verificationResult.explorerUrl) && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                      {verificationResult.scrollExplorerUrl && (
+                        <a
+                          href={verificationResult.scrollExplorerUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-center gap-2 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                        >
+                          <ExternalLink className="w-5 h-5" />
+                          Ver en Scroll
+                        </a>
+                      )}
+                      {verificationResult.arbitrumExplorerUrl && (
+                        <a
+                          href={verificationResult.arbitrumExplorerUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-center gap-2 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-semibold"
+                        >
+                          <ExternalLink className="w-5 h-5" />
+                          Ver en Arbitrum
+                        </a>
+                      )}
+                      {verificationResult.explorerUrl && verificationResult.explorerUrl !== '#' && !verificationResult.scrollExplorerUrl && !verificationResult.arbitrumExplorerUrl && (
+                        <a
+                          href={verificationResult.explorerUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-center gap-2 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-semibold"
+                        >
+                          <ExternalLink className="w-5 h-5" />
+                          Ver en Blockchain
+                        </a>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 

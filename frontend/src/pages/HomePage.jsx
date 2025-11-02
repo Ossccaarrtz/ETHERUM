@@ -1,7 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
 import VideoRecorder from "../components/VideoRecorder";
-import VideoUploader from "../components/VideoUploader";
 import ResultDisplay from "../components/ResultDisplay";
 import StartTrip from "../components/StartTrip.jsx";
 
@@ -27,13 +26,9 @@ export default function HomePage() {
     setVideoFile(file);
   };
 
-  const handleVideoSelected = (file) => {
-    setVideoFile(file);
-  };
-
   const handleSubmit = async () => {
     if (!videoFile) {
-      alert("Please select or record a video first");
+      alert("Please record a video first");
       return;
     }
 
@@ -106,16 +101,16 @@ export default function HomePage() {
                   Submit Evidence
                 </h2>
                 <p className="text-slate-600 max-w-2xl mx-auto">
-                  Record or upload video evidence that will be cryptographically
+                  Record video evidence that will be cryptographically
                   verified and permanently stored on IPFS and Arbitrum/Scroll
                   blockchains.
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+              <div className="max-w-md mx-auto">
                 <button
                   onClick={() => setMode("record")}
-                  className="group relative p-8 bg-white border-2 border-slate-200 rounded-2xl hover:border-blue-400 hover:shadow-2xl transition-all duration-300 text-left overflow-hidden"
+                  className="group relative p-8 bg-white border-2 border-slate-200 rounded-2xl hover:border-blue-400 hover:shadow-2xl transition-all duration-300 text-left overflow-hidden w-full"
                 >
                   <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-50 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
                   <div className="relative">
@@ -140,37 +135,6 @@ export default function HomePage() {
                     <p className="text-sm text-slate-600 leading-relaxed">
                       Capture live evidence directly from your device camera
                       with instant verification.
-                    </p>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => setMode("upload")}
-                  className="group relative p-8 bg-white border-2 border-slate-200 rounded-2xl hover:border-blue-400 hover:shadow-2xl transition-all duration-300 text-left overflow-hidden"
-                >
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-50 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <div className="relative">
-                    <div className="w-14 h-14 bg-gradient-to-br from-slate-100 to-slate-50 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-                      <svg
-                        className="w-7 h-7 text-slate-700"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                        />
-                      </svg>
-                    </div>
-                    <h3 className="text-xl font-semibold text-slate-900 mb-2">
-                      Upload Video
-                    </h3>
-                    <p className="text-sm text-slate-600 leading-relaxed">
-                      Select and upload existing video files from your device
-                      for blockchain verification.
                     </p>
                   </div>
                 </button>
@@ -212,39 +176,6 @@ export default function HomePage() {
             </div>
           )}
 
-          {mode === "upload" && !videoFile && (
-            <div>
-              <div className="flex justify-between items-center mb-8">
-                <div>
-                  <h2 className="text-2xl font-bold text-slate-900">
-                    Upload Evidence
-                  </h2>
-                  <p className="text-sm text-slate-600 mt-1">
-                    Select a video file from your device
-                  </p>
-                </div>
-                <button
-                  onClick={handleReset}
-                  className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                >
-                  <svg
-                    className="w-5 h-5 text-slate-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              </div>
-              <VideoUploader onVideoSelected={handleVideoSelected} />
-            </div>
-          )}
 
           {videoFile && !result && (
             <div>

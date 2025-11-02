@@ -9,6 +9,32 @@ export default function VideoRecorder({ onVideoRecorded }) {
   const videoRef = useRef(null);
   const mediaRecorderRef = useRef(null);
 
+  // Polyfill for navigator.mediaDevices if needed
+  useEffect(() => {
+    if (navigator.mediaDevices === undefined) {
+      navigator.mediaDevices = {};
+    }
+    
+    if (navigator.mediaDevices.getUserMedia === undefined) {
+      const getUserMedia = navigator.getUserMedia || 
+                           navigator.webkitGetUserMedia || 
+                           navigator.mozGetUserMedia || 
+                           navigator.msGetUserMedia;
+      
+      if (getUserMedia) {
+        navigator.mediaDevices.getUserMedia = function(constraints) {
+          const legacyConstraints = constraints.video === undefined 
+            ? { video: true, audio: true }
+            : { video: true, audio: true }; // Simplified for legacy API
+          
+          return new Promise((resolve, reject) => {
+            getUserMedia.call(navigator, legacyConstraints, resolve, reject);
+          });
+        };
+      }
+    }
+  }, []);
+
   const startCamera = async () => {
     try {
       setError(null);
@@ -30,7 +56,36 @@ export default function VideoRecorder({ onVideoRecorded }) {
         audio: true
       };
 
-      const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+      // Try to get user media - the polyfill will handle legacy browsers
+      let mediaStream;
+      
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        // Modern API
+        mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+      } else {
+        // Fallback for older browsers (if polyfill didn't work)
+        const getUserMedia = navigator.getUserMedia || 
+                             navigator.webkitGetUserMedia || 
+                             navigator.mozGetUserMedia || 
+                             navigator.msGetUserMedia;
+        
+        if (!getUserMedia) {
+          throw new Error('getUserMedia is not supported in this browser. Please use a modern browser (Chrome, Firefox, Safari, Edge) or ensure you are using HTTPS or localhost.');
+        }
+
+        // Legacy API uses simpler constraints
+        const legacyConstraints = {
+          video: true,
+          audio: true
+        };
+
+        // Use Promise-based wrapper for legacy API
+        mediaStream = await new Promise((resolve, reject) => {
+          getUserMedia.call(navigator, legacyConstraints, resolve, reject);
+        });
+        
+        console.log('Camera access granted (legacy API)');
+      }
       
       console.log('Camera access granted');
       console.log('Video tracks:', mediaStream.getVideoTracks());
@@ -65,8 +120,12 @@ export default function VideoRecorder({ onVideoRecorded }) {
         errorMessage += 'Camera is already in use by another application.';
       } else if (error.name === 'OverconstrainedError') {
         errorMessage += 'Camera does not meet the requirements.';
+      } else if (error.message && error.message.includes('not supported')) {
+        errorMessage = error.message;
+      } else if (error.message && (error.message.includes('HTTPS') || error.message.includes('localhost'))) {
+        errorMessage = 'Camera access requires HTTPS or localhost. If you are accessing via IP address, please use http://localhost or configure HTTPS.';
       } else {
-        errorMessage += error.message;
+        errorMessage += error.message || 'Unknown error occurred. Please ensure you are using HTTPS or localhost, and that your browser has camera permissions enabled.';
       }
       
       setError(errorMessage);
