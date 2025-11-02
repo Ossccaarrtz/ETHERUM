@@ -59,21 +59,29 @@ export default function ResultDisplay({ result }) {
 
       {/* Data Cards */}
       <div className="space-y-4">
-        {/* Record ID */}
-        <div className="bg-white border border-slate-200 rounded-xl p-5 hover:shadow-md transition-shadow">
-          <div className="flex items-start justify-between mb-3">
-            <div>
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                Record ID
-              </label>
+        {/* Record ID - Search Criteria */}
+        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-300 rounded-xl p-6 hover:shadow-lg transition-shadow">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <label className="text-sm font-bold text-emerald-800 uppercase tracking-wider">
+                  🔍 Record ID - Criterio de Búsqueda
+                </label>
+                <span className="px-2 py-0.5 bg-emerald-600 text-white text-xs font-semibold rounded">
+                  IMPORTANTE
+                </span>
+              </div>
+              <p className="text-xs text-emerald-700 mb-3">
+                Este es tu identificador único. Úsalo para buscar y verificar esta evidencia (formato: PLACA-TIMESTAMP)
+              </p>
             </div>
             <button
               onClick={() => copyToClipboard(result.recordId, "Record ID")}
-              className="p-1.5 hover:bg-slate-100 rounded-md transition-colors group"
-              title="Copy to clipboard"
+              className="p-2 hover:bg-emerald-200 rounded-lg transition-colors group flex-shrink-0"
+              title="Copiar Record ID"
             >
               <svg
-                className="w-4 h-4 text-slate-400 group-hover:text-slate-600"
+                className="w-5 h-5 text-emerald-700 group-hover:text-emerald-900"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -87,9 +95,11 @@ export default function ResultDisplay({ result }) {
               </svg>
             </button>
           </div>
-          <code className="text-sm font-mono text-slate-700 break-all">
-            {result.recordId}
-          </code>
+          <div className="bg-white rounded-lg p-4 border border-emerald-200">
+            <code className="text-lg font-bold font-mono text-emerald-900 break-all block text-center">
+              {result.recordId}
+            </code>
+          </div>
         </div>
 
         {/* Trip ID ✅ */}

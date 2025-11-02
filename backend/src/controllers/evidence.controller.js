@@ -96,13 +96,13 @@ export async function uploadEvidence(req, res) {
     // Success response
     return res.status(200).json({
       success: true,
-      recordId,
+      recordId, // PLATE-TIMESTAMP format (search criteria)
       hash,
       cid,
       timestamp,
       scrollTx,
       arbitrumTx,
-      recordId: record.id, // Local DB record ID
+      localId: record.id, // Local DB record ID
     });
 
   } catch (error) {
