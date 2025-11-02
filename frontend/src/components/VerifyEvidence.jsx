@@ -1,4 +1,5 @@
 import { useState } from "react";
+import axios from "axios";
 import { useVerifyEvidence } from "../hooks/useVerifyEvidence";
 import QRScanner from "./QRScanner";
 import toast from "react-hot-toast";
@@ -12,23 +13,90 @@ import {
   ExternalLink,
   QrCode,
   Search,
+  Car,
+  List,
+  Eye,
+  FileText,
 } from "lucide-react";
 
 export default function VerifyEvidence() {
-  const [recordId, setRecordId] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const [showQRScanner, setShowQRScanner] = useState(false);
   const { verifyEvidence, loading, verificationResult, error, progress } =
     useVerifyEvidence();
+  const [plateHistory, setPlateHistory] = useState(null);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+
+  // Detect if input is a Record ID (PLATE-TIMESTAMP format) or just a plate
+  const isRecordId = (input) => {
+    const trimmed = input.trim();
+    // Record ID format: PLACA-TIMESTAMP (contains dash and timestamp after)
+    return trimmed.includes('-') && /^[A-Z0-9]+-\d+$/.test(trimmed);
+  };
 
   const handleVerify = async () => {
-    if (!recordId || recordId.trim() === "") {
-      toast.error("Por favor ingresa un Record ID");
+    if (!searchInput || searchInput.trim() === "") {
+      toast.error("Por favor ingresa un Record ID o Placa");
       return;
     }
 
+    const trimmedInput = searchInput.trim();
+
+    // Check if it's a Record ID or a Plate
+    if (isRecordId(trimmedInput)) {
+      // Search by Record ID (single result)
+      try {
+        toast.loading("Buscando evidencia...", { id: "verify-loading" });
+        await verifyEvidence(trimmedInput);
+        setPlateHistory(null); // Clear history when showing single result
+        toast.dismiss("verify-loading");
+      } catch (err) {
+        console.error("Error verificando:", err);
+        toast.dismiss("verify-loading");
+      }
+    } else {
+      // Search by Plate (multiple results - history)
+      setLoadingHistory(true);
+      setPlateHistory(null);
+      
+      try {
+        toast.loading("Buscando historial por placa...", { id: "history-loading" });
+        const response = await axios.get(`/api/evidence/plate/${trimmedInput}`);
+        
+        if (response.data.success && response.data.records.length > 0) {
+          setPlateHistory({
+            plate: response.data.plate,
+            count: response.data.count,
+            records: response.data.records,
+          });
+          toast.success(`Se encontraron ${response.data.count} evidencia(s)`, { 
+            id: "history-loading",
+            duration: 3000 
+          });
+        } else {
+          toast.error("No se encontraron evidencias para esta placa", { 
+            id: "history-loading",
+            duration: 3000 
+          });
+        }
+      } catch (err) {
+        console.error("Error buscando por placa:", err);
+        const errorMsg = err.response?.data?.error || "Error al buscar por placa";
+        toast.error(errorMsg, { 
+          id: "history-loading",
+          duration: 3000 
+        });
+      } finally {
+        setLoadingHistory(false);
+      }
+    }
+  };
+
+  const handleViewRecord = async (recordId) => {
     try {
-      toast.loading("Iniciando verificación...", { id: "verify-loading" });
-      await verifyEvidence(recordId.trim());
+      toast.loading("Cargando evidencia...", { id: "verify-loading" });
+      await verifyEvidence(recordId);
+      setPlateHistory(null); // Clear history when showing single result
       toast.dismiss("verify-loading");
     } catch (err) {
       console.error("Error verificando:", err);
@@ -37,7 +105,7 @@ export default function VerifyEvidence() {
   };
 
   const handleQRScan = (scannedId) => {
-    setRecordId(scannedId);
+    setSearchInput(scannedId);
     setShowQRScanner(false);
   };
 
@@ -76,16 +144,22 @@ export default function VerifyEvidence() {
           <div className="space-y-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Record ID de la Evidencia
+                Buscar por Record ID o Placa del Vehículo
               </label>
+              <div className="mb-2">
+                <p className="text-xs text-gray-500">
+                  💡 <strong>Record ID:</strong> Formato PLACA-TIMESTAMP (ej: ABC123-1762048377) | 
+                  <strong> Placa:</strong> Solo la placa para ver historial completo (ej: ABC123)
+                </p>
+              </div>
               <div className="flex gap-3">
                 <input
                   type="text"
-                  value={recordId}
-                  onChange={(e) => setRecordId(e.target.value)}
-                  placeholder="Ej: ABC123 o cualquier ID"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  placeholder="Ej: ABC123 (historial) o ABC123-1762048377 (específico)"
                   className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-blue-500 focus:outline-none text-lg"
-                  disabled={loading}
+                  disabled={loading || loadingHistory}
                   onKeyPress={(e) => e.key === "Enter" && handleVerify()}
                 />
                 <button
@@ -101,18 +175,18 @@ export default function VerifyEvidence() {
 
             <button
               onClick={handleVerify}
-              disabled={loading || !recordId}
+              disabled={loading || loadingHistory || !searchInput}
               className="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all font-bold text-lg flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
             >
-              {loading ? (
+              {(loading || loadingHistory) ? (
                 <>
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                  Verificando...
+                  {loadingHistory ? "Buscando historial..." : "Verificando..."}
                 </>
               ) : (
                 <>
                   <Search className="w-6 h-6" />
-                  Verificar Evidencia
+                  {isRecordId(searchInput) ? "Verificar Evidencia" : "Buscar Historial"}
                 </>
               )}
             </button>
@@ -124,6 +198,80 @@ export default function VerifyEvidence() {
             )}
           </div>
         </div>
+
+        {/* Plate History Display */}
+        {plateHistory && plateHistory.records.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-xl p-6 mb-8 animate-fadeIn">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                  <Car className="w-6 h-6 text-blue-600" />
+                  Historial de Evidencias
+                </h2>
+                <p className="text-gray-600 mt-1">
+                  Placa: <span className="font-bold text-gray-900">{plateHistory.plate}</span> • 
+                  Total: <span className="font-bold text-blue-600">{plateHistory.count} evidencia(s)</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {plateHistory.records
+                .sort((a, b) => b.timestamp - a.timestamp) // Most recent first
+                .map((record, index) => (
+                  <div
+                    key={record.recordId || index}
+                    className="bg-gradient-to-r from-gray-50 to-blue-50 border-2 border-gray-200 rounded-xl p-5 hover:border-blue-400 hover:shadow-lg transition-all"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="bg-blue-100 text-blue-700 px-3 py-1 rounded-lg font-bold text-sm">
+                            #{index + 1}
+                          </div>
+                          <div>
+                            <p className="font-mono text-sm text-gray-600">
+                              Record ID: <span className="font-bold text-gray-900">{record.recordId}</span>
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-4 h-4 text-gray-500" />
+                            <span className="text-sm text-gray-600">
+                              {new Date(record.timestamp * 1000).toLocaleString("es-MX")}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Hash className="w-4 h-4 text-gray-500" />
+                            <span className="text-xs text-gray-600 font-mono truncate">
+                              {record.hash?.slice(0, 16)}...
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <FileText className="w-4 h-4 text-gray-500" />
+                            <span className="text-sm text-gray-600">
+                              {(record.fileSize / 1024 / 1024).toFixed(2)} MB
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => handleViewRecord(record.recordId)}
+                        disabled={loading}
+                        className="ml-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                      >
+                        <Eye className="w-4 h-4" />
+                        Ver Detalles
+                      </button>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
 
         {/* Error Display */}
         {error && (

@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { hashFile } from '../services/hash.service.js';
 import { uploadToIPFS } from '../services/ipfs.service.js';
-import { saveRecord, findRecordByRecordId } from '../services/storage.service.js';
+import { saveRecord, findRecordByRecordId, getRecordsByPlate } from '../services/storage.service.js';
 import { storeEvidenceOnChain } from '../services/blockchain.service.js';
 import env from '../config/env.js';
 
@@ -168,6 +168,65 @@ export async function getEvidenceByRecordId(req, res) {
     return res.status(500).json({
       success: false,
       error: error.message || 'Failed to get evidence',
+    });
+  }
+}
+
+/**
+ * GET /api/evidence/plate/:plate
+ * Get all evidence records for a specific vehicle plate
+ */
+export async function getEvidenceByPlate(req, res) {
+  try {
+    const { plate } = req.params;
+
+    if (!plate) {
+      return res.status(400).json({
+        success: false,
+        error: 'Plate number is required',
+      });
+    }
+
+    const records = getRecordsByPlate(plate);
+
+    if (records.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'No records found for this plate',
+        records: [],
+      });
+    }
+
+    // Return records in format similar to blockchain response
+    const formattedRecords = records.map(record => ({
+      recordId: record.recordId,
+      plate: record.plate,
+      licencePlate: record.plate,
+      ipfsHash: record.cid,
+      ipfsCid: record.cid,
+      fileHash: record.hash,
+      hash: record.hash,
+      timestamp: record.timestamp,
+      scrollTx: record.scrollTx,
+      arbitrumTx: record.arbitrumTx,
+      fileName: record.fileName,
+      fileSize: record.fileSize,
+      createdAt: record.createdAt,
+      source: 'local'
+    }));
+
+    return res.status(200).json({
+      success: true,
+      plate,
+      count: formattedRecords.length,
+      records: formattedRecords,
+    });
+
+  } catch (error) {
+    console.error('❌ Get evidence by plate error:', error);
+    return res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to get evidence by plate',
     });
   }
 }
